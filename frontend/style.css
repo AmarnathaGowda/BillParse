@@ -69,6 +69,40 @@ h1 {
   color: var(--error);
 }
 
+.log-panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.log-panel h2 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}
+
+.log-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 8rem;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.log-panel .log-warn {
+  color: var(--warn);
+}
+
+.log-panel .log-error {
+  color: var(--error);
+}
+
 .results-table {
   width: 100%;
   border-collapse: collapse;
