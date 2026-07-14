@@ -1,0 +1,125 @@
+:root {
+  color-scheme: light dark;
+  --border: #d0d5dd;
+  --muted: #667085;
+  --accent: #2563eb;
+  --ok: #067647;
+  --warn: #b54708;
+  --error: #b42318;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+main {
+  width: 100%;
+  max-width: 960px;
+}
+
+h1 {
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 2.5rem;
+  text-align: center;
+  cursor: pointer;
+  color: var(--muted);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.dropzone:hover,
+.dropzone.dragover {
+  border-color: var(--accent);
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.status {
+  min-height: 1.5rem;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+.status-loading {
+  color: var(--accent);
+}
+
+.status-success {
+  color: var(--ok);
+}
+
+.status-error {
+  color: var(--error);
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
+.results-table th,
+.results-table td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.results-table th {
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.row-error td:last-child {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.row-no_text_found td:last-child {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.actions {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+button {
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: white;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#reset-btn {
+  background: white;
+  color: var(--accent);
+}

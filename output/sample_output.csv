@@ -1,0 +1,5 @@
+source_filename,vendor_name,invoice_date,service_address,utility_type,usage_amount,usage_unit,billing_period_start,billing_period_end,detected_language,confidence,status
+Sample-Bill-8.01.2019-Sparky-Joule.pdf,PG&E (Pacific Gas and Electric Company),2019-09-07,12345 ENERGY CT,electricity,380.0,kWh,2019-08-02,2019-08-31,English,high,ok
+solar-choice-bill-sample.pdf,,,"1234 MAIN STREET, ANYTOWN, CA 12345",other,,,,,English,low,ok
+fichier_17_01_2023_1673982146_French_2.pdf,TotalEnergies,2023-01-12,"6 Lieu dit Le Champ du Meunier, 05700 Montclus",electricity,1272.0,kWh,2022-12-04,2023-01-03,French,high,ok
+PURA VIDA - Statuts constitutifs_French_1.pdf,TotalEnergies,2022-08-04,"35 RUE DE MAUBEUGE, 75009 PARIS",electricity,3736.0,kWh,2021-07-22,2022-07-21,French,high,ok

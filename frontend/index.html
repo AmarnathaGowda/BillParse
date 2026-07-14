@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>BillParse — Utility Invoice Extractor</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main>
+    <h1>BillParse</h1>
+    <p class="subtitle">Upload utility bills (any language, any layout) and extract structured data to CSV.</p>
+
+    <div id="dropzone" class="dropzone">
+      <p>Drag &amp; drop PDF invoices here, or click to choose files</p>
+      <input id="file-input" type="file" accept="application/pdf" multiple hidden />
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <table id="results-table" class="results-table" hidden>
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Vendor</th>
+          <th>Invoice Date</th>
+          <th>Service Address</th>
+          <th>Utility</th>
+          <th>Usage</th>
+          <th>Billing Period</th>
+          <th>Language</th>
+          <th>Confidence</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="actions">
+      <button id="download-btn" disabled>Download CSV</button>
+      <button id="reset-btn" disabled>Clear results</button>
+    </div>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
