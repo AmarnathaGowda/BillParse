@@ -34,12 +34,13 @@ cp .env.example .env   # then put your ANTHROPIC_API_KEY in .env
 uvicorn backend.main:app --reload
 ```
 
-Open http://127.0.0.1:8000, drag in PDFs from `samples/English/` or `samples/French/`,
-then click "Download CSV".
+Open http://127.0.0.1:8000, drag in PDFs from `samples/English/`, `samples/French/`, or
+`samples/Spanish/`, then click "Download CSV".
 
 ## Sample files
 
-`samples/English/` and `samples/French/` contain 4 real-world bills used for validation:
+`samples/English/`, `samples/French/`, and `samples/Spanish/` contain 6 real-world bills
+used for validation, across 3 languages:
 
 - `Sample-Bill-8.01.2019-Sparky-Joule.pdf` — PG&E (English)
 - `solar-choice-bill-sample.pdf` — a blank template with placeholder values like
@@ -47,16 +48,18 @@ then click "Download CSV".
 - `fichier_17_01_2023_1673982146_French_2.pdf` — a French electricity bill
 - `PURA VIDA - Statuts constitutifs_French_1.pdf` — a TotalEnergies electricity bill
   (French) — misleadingly named, but real invoice content
+- `Spanish_Bill1.pdf` — an Iberdrola electricity bill (Spanish)
+- `Spanish_Bill2.pdf` — a scanned/image-only Spanish bill with no extractable text layer
+  — kept intentionally, see Testing Approach below
 
-`output/sample_output.csv` is the generated CSV from running all 4 of the above through
+`output/sample_output.csv` is the generated CSV from running all 6 of the above through
 the pipeline.
 
-**Assumption / scope note:** Spanish samples were dropped from this submission's scope
-by explicit choice, to keep the working set to two languages (English, French) and avoid
-a scanned/image-only PDF that would need OCR (out of scope per the challenge's own
-assumption that OCR is not required). The pipeline itself is not English/French-specific
-— Claude's extraction prompt is language-agnostic, so adding another language back is a
-matter of adding samples, not code changes.
+**Assumption / scope note:** OCR is not implemented, per the challenge's own stated
+assumption that it's not required. `Spanish_Bill2.pdf` is a real scanned PDF with zero
+extractable text, kept in the sample set specifically to demonstrate the pipeline's
+`no_text_found` path — it's detected before any LLM call and reported with a clear
+status rather than crashing or silently skipping the file.
 
 ## Key decisions and tradeoffs
 
@@ -103,9 +106,10 @@ matter of adding samples, not code changes.
 ## What I'd do with more time
 
 - Add OCR (`pytesseract` + `pdf2image`) as a fallback for zero-text/scanned PDFs — the
-  pipeline already detects a zero-character extraction and reports it cleanly, so OCR
-  would slot in at that exact point without restructuring anything.
-- Re-add Spanish (and more languages) samples now that OCR would cover scanned inputs too.
+  pipeline already detects a zero-character extraction and reports it cleanly
+  (`Spanish_Bill2.pdf` exercises this today), so OCR would slot in at that exact point
+  without restructuring anything.
+- Add more languages/layouts beyond the current English/French/Spanish set.
 - Persist results in SQLite instead of an in-memory list, so a server restart doesn't
   lose in-progress work and multiple users don't share one global result list.
 - An editable results table so a human can correct a field before exporting, rather than

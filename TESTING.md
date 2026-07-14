@@ -3,7 +3,7 @@
 ## How accuracy was validated
 
 There's no labeled ground-truth dataset for real-world utility bills, so validation was
-manual: each of the 4 sample PDFs was run through the full pipeline and the extracted
+manual: each of the 6 sample PDFs was run through the full pipeline and the extracted
 fields were spot-checked by eye against the source PDF text (vendor name, dates, usage
 figure and unit, address). See `output/sample_output.csv` for the actual output produced
 this way.
@@ -16,6 +16,8 @@ Results:
 | solar-choice-bill-sample.pdf | English | Blank template — correctly returned `null` for date/usage fields instead of the literal placeholder text; every field's confidence is `null` (no value to grade), and the invoice-level `confidence` computes to `low` because required fields are missing |
 | fichier_17_01_2023_1673982146_French_2.pdf | French | All 7 required fields extracted correctly despite squished-together text (no spaces between words in the PDF's text layer); `usage_amount` came back `medium` confidence on one run, correctly pulling the invoice-level `confidence` down to `medium` even though every other field was `high` — exactly the scenario per-field scoring is meant to surface |
 | PURA VIDA - Statuts constitutifs_French_1.pdf | French | Correctly identified as a TotalEnergies electricity bill, despite a filename suggesting it's an unrelated legal document |
+| Spanish_Bill1.pdf | Spanish | All 7 required fields extracted correctly (Iberdrola, 350 kWh, 2018-05-08 → 2018-06-10), all `high` per-field confidence |
+| Spanish_Bill2.pdf | Spanish (unknown — no text) | Zero extractable text (pdfplumber returns `""`) — correctly short-circuits to `status: no_text_found` before any LLM call, with a clear reason shown in the UI, instead of erroring or silently skipping the file |
 
 **Observed limitation of self-reported confidence:** on repeated runs against `PURA VIDA
 - Statuts constitutifs_French_1.pdf`, `usage_amount` came back as two different values
@@ -45,9 +47,8 @@ design don't claim the scores are statistically calibrated.
   `error` status with the underlying exception message rather than crashing the batch.
 - **Zero extractable text (scanned/image-only PDF)** — detected as a distinct
   `no_text_found` status, separate from a hard error, so the UI can explain *why* (OCR
-  not implemented) rather than looking like a bug. This path is exercised by construction
-  (any PDF with no text layer hits it), though no such sample is included in this
-  submission's scope (see README's scope note on Spanish/OCR).
+  not implemented) rather than looking like a bug. Exercised by a real sample,
+  `Spanish_Bill2.pdf`, which pdfplumber extracts as `""`.
 - **Non-numeric usage values** — `models.py::coerce_usage_amount` nulls out anything
   that can't be parsed as a float rather than raising and failing the whole record.
 - **Unknown/unrecognized `utility_type`** — normalized to `other` rather than left
@@ -83,7 +84,7 @@ source .venv/bin/activate && python -m pytest tests/ -v
 ```
 
 Everything else in the pipeline (PDF extraction, the LLM call itself, the FastAPI
-endpoints, CSV export) is still validated manually against the 4 real sample bills
+endpoints, CSV export) is still validated manually against the 6 real sample bills
 (above), not by automated tests — that remains the largest gap, see below.
 
 ## What I'd add with more time
@@ -91,10 +92,10 @@ endpoints, CSV export) is still validated manually against the 4 real sample bil
 - Unit tests for `backend/models.py`'s *other* validators (invalid dates, non-numeric
   usage, unknown utility types, blank-string coercion) — only the confidence-scoring
   logic has tests so far; these are equally pure and cheap to test.
-- Unit tests for `backend/pdf_extract.py` against the 4 committed sample PDFs, asserting
+- Unit tests for `backend/pdf_extract.py` against the 6 committed sample PDFs, asserting
   non-empty text extraction (a regression guard if a PDF library upgrade changes
   behavior).
-- A small "golden set" of hand-labeled expected fields for the 4 samples — including an
+- A small "golden set" of hand-labeled expected fields for the 6 samples — including an
   expected confidence floor per field — with a script that scores the pipeline's output
   against it. Turns both the manual accuracy spot-check *and* the confidence sanity-check
   above into a repeatable regression check, rather than something re-verified by eye each
@@ -106,4 +107,4 @@ endpoints, CSV export) is still validated manually against the 4 real sample bil
   usage_amount variability observed above.
 - Real calibration of confidence scores ("of everything marked `high`, what fraction is
   actually correct?") against a labeled dataset large enough to be statistically
-  meaningful — not achievable with 4 samples, noted honestly rather than implied.
+  meaningful — not achievable with 6 samples, noted honestly rather than implied.
