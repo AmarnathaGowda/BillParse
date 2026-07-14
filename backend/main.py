@@ -77,7 +77,15 @@ async def _process_file(upload: UploadFile) -> dict:
     except ValidationError as exc:
         return {**row, "status": "error", "error_message": f"Invalid LLM output: {exc}"}
 
-    return {**row, **record.model_dump(), "status": "ok"}
+    record_data = record.model_dump()
+    flattened_confidence = {
+        f"{field}_confidence": score for field, score in record_data["field_confidence"].items()
+    }
+
+    # record_data keeps the nested field_confidence (useful to API/JSON consumers);
+    # flattened_confidence adds the <field>_confidence keys CSV_FIELDNAMES expects.
+    # csv_export ignores any dict key not present in CSV_FIELDNAMES, so both can coexist.
+    return {**row, **record_data, **flattened_confidence, "status": "ok"}
 
 
 @app.post("/api/reset")

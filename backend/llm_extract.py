@@ -3,6 +3,8 @@ import time
 
 import anthropic
 
+from backend.models import REQUIRED_FIELDS
+
 MODEL = "claude-sonnet-5"
 
 EXTRACTION_TOOL = {
@@ -49,14 +51,23 @@ EXTRACTION_TOOL = {
                 "type": ["string", "null"],
                 "description": "Primary language of the source document, as an English word (e.g. 'English', 'French').",
             },
-            "confidence": {
-                "type": "string",
-                "enum": ["high", "medium", "low"],
-                "description": "Your overall confidence that the extracted fields are correct and "
-                "complete, given how clear and unambiguous the source text was.",
+            "field_confidence": {
+                "type": "object",
+                "description": "Your confidence in each individually extracted field below, given how "
+                "clear and unambiguous the source text was for that specific field. Omit a field here "
+                "(or use null) if you returned null for it -- there is no confidence in a value that "
+                "doesn't exist.",
+                "properties": {
+                    field: {
+                        "type": ["string", "null"],
+                        "enum": ["high", "medium", "low", None],
+                    }
+                    for field in REQUIRED_FIELDS
+                },
+                "required": list(REQUIRED_FIELDS),
             },
         },
-        "required": ["confidence"],
+        "required": ["field_confidence"],
     },
 }
 
@@ -71,7 +82,11 @@ Call the record_invoice_data tool exactly once with the extracted fields. Rules:
 (e.g. a blank template with placeholder text like "mm/dd/yyyy" is NOT a real date -- use null).
 - Never invent or guess a value. It is better to return null than a fabricated value.
 - usage_amount must be the numeric consumption figure only (no currency amounts, no units).
-- Set confidence honestly based on how much of the required data was clearly present."""
+- For field_confidence, grade each field independently and honestly:
+  "high" if the value was stated clearly and unambiguously in the text; "medium" if you
+  had to infer it or the text was slightly ambiguous; "low" if you extracted something
+  but you're genuinely unsure it's correct. If a field's value is null, its
+  field_confidence entry must also be null -- do not grade a value you didn't extract."""
 
 
 def extract_invoice_fields(invoice_text: str, max_retries: int = 1) -> dict:

@@ -14,9 +14,17 @@ Upload one or more utility bill PDFs — in any language, any layout — and Bil
    enum) before it's ever shown to the user.
 4. Shows a results table in the browser and lets you download everything as one CSV.
 
-Output columns (the 8 required fields, plus 2 bonus ones):
+Output columns (the 8 required fields, plus bonus columns for language, confidence, and
+per-field confidence):
 `source_filename, vendor_name, invoice_date, service_address, utility_type, usage_amount,
-usage_unit, billing_period_start, billing_period_end, detected_language, confidence, status`
+usage_unit, billing_period_start, billing_period_end, detected_language, confidence,
+status, vendor_name_confidence, invoice_date_confidence, utility_type_confidence,
+usage_amount_confidence, usage_unit_confidence, billing_period_start_confidence,
+billing_period_end_confidence`
+
+`confidence` is an invoice-level summary; the `*_confidence` columns are Claude's
+per-field self-report, corrected by our own validation. See "Key decisions" below for how
+the two relate.
 
 ## Running it locally
 
@@ -75,6 +83,22 @@ matter of adding samples, not code changes.
 - **Per-file error isolation.** One bad file in a batch (corrupt PDF, non-PDF upload,
   LLM error) doesn't fail the whole request — every other file in the batch still gets
   processed, and the bad one shows a clear status instead of a fabricated row.
+- **Per-field confidence, with the invoice-level score *computed*, not independently
+  self-reported.** Claude grades each of the 7 required fields individually
+  (`backend/llm_extract.py`'s `field_confidence` schema property). The invoice-level
+  `confidence` column is then derived in `backend/models.py::aggregate_confidence` as the
+  *worst* score across those fields — a missing required field counts as worse than an
+  explicit "low", so one badly-extracted field can't hide behind six good ones. Two
+  deterministic overrides win over whatever Claude self-reported: (1) if our own shape
+  validation nulls out a value (bad date format, unparseable number), that field's
+  confidence is nulled too, regardless of what Claude claimed; (2) a billing-period
+  cross-check (`apply_period_cross_check`) forces both period fields to "low" if the end
+  date precedes the start date. **This changes what the `confidence` column means**
+  compared to earlier versions of this project (previously: Claude's own one-shot
+  self-assessment of the whole invoice; now: a computed aggregate) — same column, same
+  three-value enum, but a behavior change worth knowing about if you're comparing output
+  across versions. Self-reported confidence, per-field or not, is still uncalibrated —
+  see "What I'd do with more time" and `TESTING.md`.
 
 ## What I'd do with more time
 
@@ -86,8 +110,18 @@ matter of adding samples, not code changes.
   lose in-progress work and multiple users don't share one global result list.
 - An editable results table so a human can correct a field before exporting, rather than
   re-uploading.
-- Automated tests (see `TESTING.md`) for the validation/coercion layer and PDF extraction
-  shape, run in CI.
-- Per-field confidence instead of one overall confidence per invoice.
+- A fuller automated test suite (unit + integration + end-to-end against real sample
+  invoices, run in CI) — currently only the deterministic confidence-scoring logic has
+  unit tests (`tests/unit/test_confidence.py`); the rest of the pipeline is still
+  validated manually (see `TESTING.md`).
+- Surface per-field confidence in the UI — the results table currently shows only the
+  invoice-level `confidence` column; the richer per-field breakdown is in the API/CSV but
+  not yet rendered in the browser.
+- Real calibration of confidence scores against a labeled dataset at scale. With only 4
+  samples, "high" is a heuristic (self-report plus deterministic corrections), not a
+  statistically calibrated probability — see `TESTING.md`.
+- A cross-check for plausible usage magnitude vs. unit (e.g. catching a monetary total
+  mistakenly extracted as `usage_amount`) — currently only the billing-period ordering is
+  cross-checked, not usage plausibility.
 
 See `TESTING.md` for how accuracy was validated and what edge cases were considered.
