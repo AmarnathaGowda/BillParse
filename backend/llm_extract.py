@@ -48,8 +48,11 @@ EXTRACTION_TOOL = {
                 "description": "End of the billing cycle, as ISO 8601 (YYYY-MM-DD).",
             },
             "detected_language": {
-                "type": ["string", "null"],
-                "description": "Primary language of the source document, as an English word (e.g. 'English', 'French').",
+                "type": "string",
+                "description": "Primary language of the source document's text, as an English "
+                "word (e.g. 'English', 'French', 'Spanish'). Every document is written in some "
+                "language, so this should essentially never be left blank -- make your best "
+                "determination even if other fields are unclear.",
             },
             "field_confidence": {
                 "type": "object",
@@ -67,7 +70,7 @@ EXTRACTION_TOOL = {
                 "required": list(REQUIRED_FIELDS),
             },
         },
-        "required": ["field_confidence"],
+        "required": ["detected_language", "field_confidence"],
     },
 }
 
@@ -81,6 +84,9 @@ Call the record_invoice_data tool exactly once with the extracted fields. Rules:
 - Use null for any field that is missing, unclear, or not actually present in the text \
 (e.g. a blank template with placeholder text like "mm/dd/yyyy" is NOT a real date -- use null).
 - Never invent or guess a value. It is better to return null than a fabricated value.
+- detected_language is the one exception to "null when uncertain": always name the
+  language the source text is actually written in (e.g. "Spanish"), even if every other
+  field on the invoice is unclear or missing.
 - usage_amount must be the numeric consumption figure only (no currency amounts, no units).
 - For field_confidence, grade each field independently and honestly:
   "high" if the value was stated clearly and unambiguously in the text; "medium" if you
